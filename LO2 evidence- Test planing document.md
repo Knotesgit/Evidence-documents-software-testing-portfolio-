@@ -36,7 +36,7 @@ Quality attributes targeted:
 ### 3.1 Scaffolding
 To enable isolated and repeatable testing:
 - Implement a **`GeoService`** class exposing pure methods (`distanceBetween`, `isPointInRegion`).
-- Use **mock `Coordinate` and `Region` objects** in unit tests to avoid dependency on HTTP or JSON parsing.
+- Use ** `Coordinate` and `Region` objects** in unit tests to avoid dependency on HTTP or JSON parsing.
 - Apply **JUnit 5** and **MockMvc** for integration tests, enabling full endpoint coverage without manual deployment.
 - Include **test data fixtures** for polygons and coordinates in `src/test/resources`.
 
@@ -96,3 +96,4 @@ Testing occurs iteratively following each implementation increment, ensuring tra
 - ISO/IEC/IEEE 29119-3 (2021): §7.2 Test Plan template  
 - Pezzè & Young (Ch. 20): Planning and Process  
 - Software Testing Tutorial LO2 (2025/6)
+
