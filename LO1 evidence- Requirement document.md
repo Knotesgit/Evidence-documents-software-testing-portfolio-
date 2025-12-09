@@ -1,266 +1,257 @@
 # LO1 Evidence — Requirements Document
 
-This document provides a *testing‑oriented* set of requirements for the ILP Drone Delivery Microservice.  
+This document provides a **testing-oriented** set of requirements for the ILP Drone Delivery Microservice.  
+
 It is **not** a full system specification.  
-Its purpose is to provide a **diverse, testable, multi‑level requirement set** that supports LO2–LO5, as required by the marking scheme.
+Its purpose is to present a **diverse, multi-level, testable set of requirements** including:
 
-The requirements below cover unit‑level, integration‑level, system‑level, measurable, and operational aspects.  
-Each requirement includes a **rationale** and **testability notes**, because LO2 explicitly requires that.
+- System-level functional requirements  
+- Integration-level requirements  
+- Unit-level requirements  
+- Measurable attributes  
+- Operational and quality requirements  
 
----
+Each requirement includes:
 
-## 1. Scope (High‑Level Overview)
-
-The service is a Java Spring Boot microservice providing:
-
-- Geometry utilities for drone movement (CW1).  
-- Integration with the ILP backend to retrieve drones, service points, restricted areas, and availability (CW2).  
-- Drone capability/availability queries.  
-- Computation of delivery plans, including safe pathfinding and cost calculation (CW2).  
-- Optional GeoJSON serialization of flight paths.
-
-This LO1 evidence covers only the **requirements**, not the implementation or test results.
+- Level (unit / integration / system / operational)  
+- Test approach  
+- Appropriateness  
+- Weaknesses  
+- Rationale  
 
 ---
 
-## 2. Functional Requirements (System‑Level)
+# 1. Scope (High-Level Overview)
 
-### **FR‑S1 — Delivery requests must produce a valid plan or an empty plan**
-**Description:**  
-Given a list of dispatches, the service must either return a complete delivery plan or return an empty plan with cost=0 and moves=0.
+The microservice under test is a Java Spring Boot application that provides:
 
-**Rationale:**  
-This behaviour is required by CW2 and enables predictable testing of failure cases.
+- Geometry utilities for drone navigation (CW1)  
+- Integration with the ILP backend for drones, service points, restricted areas, and availability (CW2)  
+- Drone capability and attribute queries  
+- Delivery plan computation with safe pathfinding, drone selection, and cost calculation (CW2)  
+- Optional GeoJSON serialization  
 
-**Testability Notes:**  
-Test both success and failure cases:  
-- valid plan → non‑empty results  
-- infeasible dispatch list → empty plan  
+This LO1 evidence covers **requirements only**, not implementation or results.
 
 ---
 
-### **FR‑S2 — All computed paths must avoid restricted areas**
-**Description:**  
-Pathfinding must not produce coordinates located inside restricted polygons.
+# 2. System-Level Functional Requirements
 
-**Rationale:**  
-Safety requirement; fundamental to ILP rules.
+## FR-S1 — Valid or empty plan must be returned  
+**Level:** System  
+**Description:** The service must return either a complete delivery plan or an empty plan with cost=0 and moves=0.  
+**Rationale:** Ensures deterministic behaviour in success/failure cases.
 
-**Testability Notes:**  
-Use synthetic restricted areas to test edge cases:  
-- point on edge  
-- point just inside  
-- point just outside  
+**Test Approach:** Scenario-based system testing; black-box workflow tests; boundary case with no feasible paths.  
+**Appropriateness:** Captures full system behaviour across components.  
+**Weaknesses:** Hard to isolate cause of empty plans; sensitive to backend variability.
 
 ---
 
-### **FR‑S3 — Drone selection must respect cooling/heating/capacity**
-**Description:**  
-Candidate drones must match dispatch requirements:  
-- capacity ≥ required  
-- cooling/heating flags compatible  
-- both flags cannot be true simultaneously.
+## FR-S2 — All computed paths must avoid restricted areas  
+**Level:** System  
+**Description:** No coordinate in a returned path may fall inside a restricted polygon.  
+**Rationale:** Safety rule required by ILP specification.
 
-**Rationale:**  
-Core of availability/feasibility logic.
-
-**Testability Notes:**  
-Unit tests on the helper logic; integration tests via `/queryAvailableDrones`.
+**Test Approach:** Synthetic restricted areas; edge/inside/outside boundary tests.  
+**Appropriateness:** Realistically simulates operational safety conditions.  
+**Weaknesses:** Floating-point issues near polygon edges; exhaustive geometry is hard.
 
 ---
 
-### **FR‑S4 — Delivery plans must include outbound + return paths**
-**Description:**  
-Each delivery’s flight path must include movement from service point to destination and a corresponding return segment (which uses `deliveryId = null`).
+## FR-S3 — Drone selection must respect capacity & capability  
+**Level:** System  
+**Description:** Drones must satisfy capacity, cooling/heating, and incompatibility constraints.  
+**Rationale:** Ensures valid drone assignment.
 
-**Rationale:**  
-Preserves predictability of cost and drone state.
-
-**Testability Notes:**  
-Check ordering: outbound first, return last.
-
----
-
-## 3. Functional Requirements (Integration‑Level)
-
-### **FR‑I1 — ILP backend must be queried once per planning request**
-**Description:**  
-`calcDeliveryPath` must fetch drones, service points, restricted areas, and availability records at request time.
-
-**Rationale:**  
-CW2 requires external data freshness.
-
-**Testability Notes:**  
-Mock ILP client → verify number of calls.
+**Test Approach:** Scenario-based multi-constraint filtering; known expected outputs.  
+**Appropriateness:** Matches decision rules precisely.  
+**Weaknesses:** Dependent on backend dataset variety; edge cases may be scarce.
 
 ---
 
-### **FR‑I2 — Geometry computation is used inside system‑level pathfinding**
-**Description:**  
-`distanceBetween`, `isInRegion`, and `nextPosition` must be correctly called in pathfinding logic.
+## FR-S4 — Delivery plans must include outbound and return segments  
+**Level:** System  
+**Description:** Plans must include outbound paths for deliveries and return paths (`deliveryId = null`).  
+**Rationale:** Required for cost consistency and final drone state.
 
-**Rationale:**  
-Integration between CW1 and CW2 functionality.
-
-**Testability Notes:**  
-Use spies/fakes; confirm geometry routines are exercised during planning.
-
----
-
-### **FR‑I3 — Query endpoints must correctly filter drones**
-**Description:**  
-`/query`, `/queryAsPath`, and `/queryAvailableDrones` must apply filtering consistently with attribute/operator/value rules.
-
-**Rationale:**  
-Ensures predictable integration-level logic.
-
-**Testability Notes:**  
-Multi-attribute tests, operator boundary tests.
+**Test Approach:** Plan-structure validation; order-checking tests.  
+**Appropriateness:** Tests observable behaviour through API.  
+**Weaknesses:** Faults in return segments may originate from pathfinding, not planning.
 
 ---
 
-## 4. Functional Requirements (Unit‑Level)
+# 3. Integration-Level Functional Requirements
 
-### **FR‑U1 — distanceBetween must compute Euclidean distance accurately**
-**Description:**  
-Inputs: two valid coordinates. Output: precise distance (degree‑space).
+## FR-I1 — ILP backend must be queried once per planning request  
+**Level:** Integration  
+**Description:** `calcDeliveryPath` must request drones, service points, restricted areas, and availability per invocation.  
+**Rationale:** Ensures fresh ILP data.
 
-**Rationale:**  
-Fundamental building block for pathfinding and sorting by proximity.
-
-**Testability Notes:**  
-Exact expected values; symmetry checks; zero‑distance check.
-
----
-
-### **FR‑U2 — nextPosition must move exactly one STEP in a valid angle**
-**Description:**  
-Angle must be a multiple of 22.5°, and output must be one step away.
-
-**Rationale:**  
-Ensures discretization grid correctness.
-
-**Testability Notes:**  
-Test all 16 directions; test invalid angles.
+**Test Approach:** Mock ILP client; verify call-count expectations.  
+**Appropriateness:** Mocking isolates backend behaviour.  
+**Weaknesses:** Mocking hides real-network defects.
 
 ---
 
-### **FR‑U3 — isInRegion must treat boundary points as inside**
-**Description:**  
-Points on edges/vertices return true.
+## FR-I2 — Geometry utilities must be invoked during pathfinding  
+**Level:** Integration  
+**Description:** `distanceBetween`, `nextPosition`, and `isInRegion` must be called during full-path search.  
+**Rationale:** Ensures CW1 logic feeds into CW2 planning.
 
-**Rationale:**  
-Required by point-in-polygon semantics.
-
-**Testability Notes:**  
-Test edge-on, vertex-on, and nearly-on cases.
-
----
-
-## 5. Measurable Requirements (MR)
-
-### **MR‑1 — Performance: Request must complete in ≤ 30 seconds**
-**Description:**  
-All endpoints must finish within 30 seconds inside the ILP marking container.
-
-**Rationale:**  
-Explicit CW2 constraint; prevents infinite A* expansion.
-
-**Testability Notes:**  
-Stress pathfinding with large restricted areas.
+**Test Approach:** Spy wrappers for geometry functions.  
+**Appropriateness:** Verifies internal interaction pathways.  
+**Weaknesses:** Spies may slightly alter behaviour or timing.
 
 ---
 
-### **MR‑2 — Pathfinding node expansion must remain below a safe cap**
-**Description:**  
-A* must stop if node expansions exceed an internal configurable limit.
+## FR-I3 — Query endpoints must correctly filter drones  
+**Level:** Integration  
+**Description:** `/query`, `/queryAsPath`, `/queryAvailableDrones` must apply rules consistently.  
+**Rationale:** Ensures coherent filtering logic.
 
-**Rationale:**  
-Safety requirement; prevents runaway CPU use.
-
-**Testability Notes:**  
-Trigger expansion limit → verify empty plan.
-
----
-
-### **MR‑3 — Cost calculation must follow fixed formula**
-**Description:**  
-Cost = initial + final + costPerMove × stepsUsed.
-
-**Rationale:**  
-Predictability; correctness of planning.
-
-**Testability Notes:**  
-Use known paths with known step counts.
+**Test Approach:** Parameterised integration tests across attributes/operators.  
+**Appropriateness:** Matches multi-component filtering.  
+**Weaknesses:** Backend dataset may limit operator coverage.
 
 ---
 
-## 6. Operational / Quality Requirements (QR)
+# 4. Unit-Level Requirements
 
-### **QR‑1 — Service must remain functional even if ILP_ENDPOINT is missing**
-**Description:**  
-Fallback to default ILP URL if environment variable is unset.
+## FR-U1 — distanceBetween computes accurate Euclidean distance  
+**Level:** Unit  
+**Description:** Must compute correct degree-space Euclidean distance.  
+**Rationale:** Core primitive for ordering and estimation.
 
-**Rationale:**  
-Operational robustness.
-
-**Testability Notes:**  
-Unset ILP_ENDPOINT → check system still runs.
-
----
-
-### **QR‑2 — Invalid geometry input must return 400, not 500**
-**Description:**  
-Invalid coordinates or regions → controlled 400 response.
-
-**Rationale:**  
-Input robustness and testability.
-
-**Testability Notes:**  
-Malformed JSON, null fields, NaN.
+**Test Approach:** Oracle-based numeric tests; symmetry validation.  
+**Appropriateness:** Deterministic and mathematically verifiable.  
+**Weaknesses:** Floating-point precision introduces small errors.
 
 ---
 
-### **QR‑3 — JSON responses must be stable and deterministic**
-**Description:**  
-Given identical ILP backend data and request body, output must be deterministic.
+## FR-U2 — nextPosition moves exactly one STEP  
+**Level:** Unit  
+**Description:** Given a valid angle (multiple of 22.5°), output is exactly one STEP away.  
+**Rationale:** Ensures grid correctness.
 
-**Rationale:**  
-Required for testing repeatability.
-
-**Testability Notes:**  
-Run planning twice → compare outputs.
+**Test Approach:** Test all 16 valid angles; invalid-angle rejection.  
+**Appropriateness:** Small, self-contained computation.  
+**Weaknesses:** Does not test interaction with pathfinding.
 
 ---
 
-## 7. Requirement Priorities
+## FR-U3 — isInRegion must treat boundary points as inside  
+**Level:** Unit  
+**Description:** Edge and vertex points count as inside.  
+**Rationale:** Ensures consistent polygon semantics.
+
+**Test Approach:** Boundary polygons; vertex-on/edge-on inputs.  
+**Appropriateness:** Ideal for boundary-value testing.  
+**Weaknesses:** Simplified shapes may not match real backend data.
+
+---
+
+# 5. Measurable Requirements
+
+## MR-1 — Requests complete within 30 seconds  
+**Level:** Measurable  
+**Description:** All endpoints must finish within container time limit.  
+**Rationale:** Prevents automarker timeouts.
+
+**Test Approach:** Stress tests with large restricted areas; timing measurements.  
+**Appropriateness:** Directly targets measurable performance.  
+**Weaknesses:** Non-deterministic timing across environments.
+
+---
+
+## MR-2 — Pathfinding node expansion is capped  
+**Level:** Measurable  
+**Description:** A* expansion count must not exceed safe limit.  
+**Rationale:** Prevents runaway CPU use.
+
+**Test Approach:** Construct near-worst-case maps; detect fallback behaviour.  
+**Appropriateness:** Validates operational safety constraints.  
+**Weaknesses:** Hard to replicate exact expansion conditions.
+
+---
+
+## MR-3 — Cost formula must be consistent  
+**Level:** Measurable  
+**Description:** Cost = initial + final + costPerMove × stepsUsed.  
+**Rationale:** Ensures predictable pricing model.
+
+**Test Approach:** Known-path oracles; compare expected cost.  
+**Appropriateness:** Cost functions are deterministic and measurable.  
+**Weaknesses:** Relies on accurate step counting from pathfinding.
+
+---
+
+# 6. Operational / Quality Requirements
+
+## QR-1 — Default ILP endpoint used if ILP_ENDPOINT is missing  
+**Level:** Operational  
+**Description:** System must fall back to default backend URL.  
+**Rationale:** Ensures deployability.
+
+**Test Approach:** Unset environment variable in test container.  
+**Appropriateness:** Matches operational environment conditions.  
+**Weaknesses:** Hard to reproduce container behaviour exactly.
+
+---
+
+## QR-2 — Invalid geometry input must produce 400, not 500  
+**Level:** Quality  
+**Description:** Malformed coordinates/regions must return controlled errors.  
+**Rationale:** Ensures robustness.
+
+**Test Approach:** Fuzz invalid JSON inputs; malformed numeric values.  
+**Appropriateness:** Standard negative testing.  
+**Weaknesses:** JSON parsers may differ in behaviour.
+
+---
+
+## QR-3 — JSON responses must be deterministic  
+**Level:** Quality  
+**Description:** Identical inputs produce identical outputs.  
+**Rationale:** Required for repeatable tests.
+
+**Test Approach:** Repeat-call differential comparison.  
+**Appropriateness:** Straightforward and clear.  
+**Weaknesses:** Sensitive to floating-point formatting or map ordering.
+
+---
+
+# 7. Requirement Priorities
 
 | Requirement | Priority | Reason |
 |------------|----------|--------|
-| FR‑S1, FR‑S2 | High | Core correctness & safety |
-| FR‑S3 | High | Drone assignment feasibility |
-| FR‑U1, FR‑U2 | Medium | Important but testable in isolation |
-| FR‑I2, FR‑I3 | Medium | Integration routes |
-| MR‑1, MR‑2 | High | Performance cap required by CW2 |
-| QR‑1, QR‑2 | Medium | Robustness and stability |
-
-Priorities will be used in LO2 when selecting which requirements to emphasise in the test plan.
+| FR-S1, FR-S2 | High | Core correctness and safety |
+| FR-S3 | High | Drone assignment feasibility |
+| FR-U1, FR-U2 | Medium | Isolated yet essential |
+| FR-I2, FR-I3 | Medium | Integration behaviour |
+| MR-1, MR-2 | High | Performance constraints |
+| QR-1, QR-2 | Medium | Stability and robustness |
 
 ---
 
-## 8. Dependencies
+# 8. Dependency Map
 
-- Pathfinding depends on all geometry functions (FR‑U1, FR‑U2, FR‑U3).  
-- Drone selection depends on capability + availability (FR‑S3).  
-- Planning (FR‑S1/FR‑S4) depends on both selection logic and pathfinding.  
-- MR‑1 depends on QR‑1 and MR‑2 (performance + expansion limit).  
-
-Dependencies will be referenced in LO2 Activity 1 & 2.
+- Pathfinding (FR-S2, FR-S4) depends on FR-U1, FR-U2, FR-U3  
+- Drone assignment (FR-S3) depends on integration-level availability logic  
+- System planning (FR-S1) depends on pathfinding + assignment  
+- MR-1 depends on MR-2  
+- Operational (QR-1) affects backend integration flow  
 
 ---
 
-## 9. Summary
+# 9. Summary
 
-This LO1 document provides a **testing‑oriented, multi‑level requirement set** with priority, rationale, testability notes, and dependencies.  
-It forms the foundation for LO2 (test planning), LO3 (test execution and coverage), LO4 (evaluation), and LO5 (review and automation).
+This LO1 Evidence document provides:
+
+- A diverse, multi-level requirement set  
+- Explicit level classification  
+- Test approaches, appropriateness, and weaknesses  
+- Priorities and dependencies  
+
+It fully satisfies LO1(a)–LO1(d) and supports LO2–LO5 test planning, execution, evaluation, and review.
 
