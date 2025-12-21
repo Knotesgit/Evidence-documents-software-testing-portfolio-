@@ -212,7 +212,7 @@ I adopt the **V-Model lifecycle**, as described in Y&P Chapter 20. The V-Model l
 
 ---
 
-## 10. Summary
+## 12. Summary
 
 This test planning document demonstrates a coherent LO2-level analysis by:
 
