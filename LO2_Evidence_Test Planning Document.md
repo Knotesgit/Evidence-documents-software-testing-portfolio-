@@ -185,7 +185,21 @@ These improvements are acknowledged but excluded due to time and resource constr
 
 ---
 
-## 9. Test Schedule
+## 9. Lifecycle Model Selection (V-Model)
+
+I adopt the **V-Model lifecycle**, as described in Y&P Chapter 20. The V-Model links development stages with corresponding testing phases (unit → integration → system → acceptance). It fits the ILP microservice because requirements span multiple levels and require structured verification.
+
+## 10. Mapping Selected Requirements to Lifecycle Testing Phases
+
+| Requirement | Lifecycle Phase | Rationale |
+|------------|-----------------|-----------|
+| **FR-U2 — nextPosition must move exactly one STEP** | **Unit Testing** | Deterministic geometric primitive; best verified immediately after implementation. |
+| **FR-I1 — Backend must be queried once per planning request** | **Integration Testing** | Requires correct interaction between service layer and ILP backend (mocks/spies). |
+| **FR-S2 — Paths must not enter restricted areas** | **System Testing** | Emergent behaviour involving geometry, pathfinding, and filtering; only visible at system level. |
+| **FR-S3 — Drone selection must respect capability & capacity** | **System Testing** | Requires system-level filtering and backend data. |
+| **MR-1 — All requests must complete within 30 seconds** | **System + Acceptance Testing** | Performance constraints measurable only in integrated environment and validated during acceptance/performance evaluation. |
+
+## 11. Test Schedule
 
 | Week | Activities |
 |------|-----------|
