@@ -181,6 +181,7 @@ These improvements are acknowledged but excluded due to time and resource constr
 - Full pathfinding verification is computationally expensive; restriction is applied.
 - Backend data variability necessitates mocking for repeatability.
 - Performance testing cannot be exhaustive; representative cases are selected.
+- High-priority requirements are tested first due to limited time.
 
 ---
 
@@ -199,6 +200,12 @@ These improvements are acknowledged but excluded due to time and resource constr
 
 ## 10. Summary
 
-This document provides a complete LO2-compliant test planning artefact,
-integrating requirement analysis, test strategy selection, instrumentation,
-scaffolding, and evaluation.
+This test planning document demonstrates a coherent LO2-level analysis by:
+
+- selecting diverse, multi-level requirements
+- mapping them to appropriate test levels and A&T approaches
+- identifying necessary instrumentation and scaffolding
+- evaluating the adequacy and limitations of those choices
+
+It provides a sound foundation for the execution (LO3), architectural support (LO4),
+and review (LO5) activities that follow.
