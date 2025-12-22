@@ -133,7 +133,7 @@ use of that instrumentation.
 ### FR-S2 — Restricted-area avoidance
 
 - **Instrumentation**
-  - Explicit geometric checks (`isInRegion`) during path evaluation
+  - Expose complete path segments, enabling post-hoc segment–polygon intersection checks in system tests.
 - **Scaffolding**
   - Synthetic restricted polygons
   - Reduced, controlled map sections
@@ -212,7 +212,18 @@ I adopt the **V-Model lifecycle**, as described in Y&P Chapter 20. The V-Model l
 
 ---
 
-## 12. Summary
+## 12. Evaluation of the Quality of the Test Plan
+
+The quality of the test plan was evaluated by considering whether the selected requirements and testing levels provide adequate coverage of the system’s key risks under realistic resource constraints.
+The plan deliberately focuses on a small but diverse set of requirements spanning unit, integration, system, and measurable levels, rather than attempting exhaustive coverage of all functional behaviour.
+
+A potential omission of the plan is that not all system requirements are tested directly, and some behaviours (e.g. secondary path optimality or rare constraint combinations) are not exhaustively explored. However, this risk is mitigated by prioritising requirements whose failure would result in unsafe behaviour (FR-S2), invalid outputs (FR-S3), or infeasible execution (MR-1).
+
+Overall, the test plan is considered adequate for LO2 purposes because it targets the dominant failure modes of the system while explicitly acknowledging and controlling for the limitations imposed by time, computational cost, and backend variability.
+
+---
+
+## 13. Summary
 
 This test planning document demonstrates a coherent LO2-level analysis by:
 
