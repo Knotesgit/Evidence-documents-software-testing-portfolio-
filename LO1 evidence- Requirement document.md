@@ -52,8 +52,8 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 
 ## FR-S2 — All computed paths must avoid restricted areas  
 **Level:** System  
-**Description:** No coordinate in a returned path may fall inside a restricted polygon.  
-**Rationale:** Safety rule required by ILP specification.
+**Description:** For every consecutive pair of coordinates in any returned path, the movement segment must not intersect the interior of any restricted polygon. Boundary contact (edge/vertex) is treated as blocked.
+Rationale: A path is executed as continuous movement between returned waypoints; safety must hold for the entire step, not only the endpoints.
 
 **Test Approach:** System-level testing with synthetic restricted polygons, checking generated paths against inside, outside, edge-on, and vertex-on cases, including small epsilon offsets near polygon boundaries.
 
