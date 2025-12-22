@@ -43,7 +43,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Rationale:** Ensures deterministic behaviour in success/failure cases.
 
 **Test Approach:** Scenario-based system testing using black-box API workflows, including cases with feasible routes and boundary cases where no safe path exists, asserting either a complete plan or a zero-cost, zero-move empty plan.  
+
 **Appropriateness:** Captures full system behaviour across components where the distinction between valid and empty plans emerges only from end-to-end interaction and cannot be validated at unit or integration level without oversimplifying failure causes.
+
 **Weaknesses:** Hard to isolate the root cause of empty plans, as failures may originate from pathfinding, drone filtering, or backend data variability.
 
 ---
@@ -54,7 +56,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Rationale:** Safety rule required by ILP specification.
 
 **Test Approach:** System-level testing with synthetic restricted polygons, checking generated paths against inside, outside, edge-on, and vertex-on cases, including small epsilon offsets near polygon boundaries.
+
 **Appropriateness:** Realistically simulates operational safety conditions because restricted-area violations arise from accumulated path decisions and floating-point effects that cannot be exhaustively captured by isolated geometric unit tests.
+
 **Weaknesses:** Floating-point precision near polygon edges may cause borderline cases to behave inconsistently, and exhaustive geometric coverage is infeasible.
 
 ---
