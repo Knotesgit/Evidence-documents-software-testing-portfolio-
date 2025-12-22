@@ -212,12 +212,14 @@ I adopt the **V-Model lifecycle**, as described in Y&P Chapter 20. The V-Model l
 
 ---
 
-## 12. Evaluation of the Quality of the Test Plan
+## 12. Evaluation of the Quality of the Test Plan 
+The quality of the test plan was evaluated by considering whether the selected requirements and testing levels provide adequate coverage of the system’s key risks under realistic resource constraints. The plan deliberately focuses on a small but diverse set of requirements spanning unit, integration, system, and measurable levels, rather than attempting exhaustive coverage of all functional behaviour.
 
-The quality of the test plan was evaluated by considering whether the selected requirements and testing levels provide adequate coverage of the system’s key risks under realistic resource constraints.
-The plan deliberately focuses on a small but diverse set of requirements spanning unit, integration, system, and measurable levels, rather than attempting exhaustive coverage of all functional behaviour.
+A potential omission of the plan is that not all system requirements are tested directly, and some behaviours (e.g. secondary path optimality or rare constraint combinations) are not exhaustively explored. However, this risk is mitigated by prioritising requirements whose failure would result in unsafe behaviour (FR-S2), invalid outputs (FR-S3), or infeasible execution (MR-1). 
 
-A potential omission of the plan is that not all system requirements are tested directly, and some behaviours (e.g. secondary path optimality or rare constraint combinations) are not exhaustively explored. However, this risk is mitigated by prioritising requirements whose failure would result in unsafe behaviour (FR-S2), invalid outputs (FR-S3), or infeasible execution (MR-1).
+In particular, FR-S2 represents the highest residual risk in the plan. Although unit-level geometric predicates can be verified in isolation, they cannot establish whole-path safety. System-level testing was therefore chosen deliberately, despite higher cost, because it is the lowest level at which segment–polygon interactions and search behaviour can be observed together. 
+
+This introduces a trade-off: exhaustive geometric coverage is sacrificed in favour of representative scenario coverage. The plan accepts this limitation explicitly, as exhaustive verification would be computationally infeasible and disproportionate to the risks addressed by LO2. Overall, the test plan is considered adequate for LO2 purposes because it targets the dominant failure modes of the system while explicitly acknowledging and controlling for the limitations imposed by time, computational cost, and backend variability.
 
 Overall, the test plan is considered adequate for LO2 purposes because it targets the dominant failure modes of the system while explicitly acknowledging and controlling for the limitations imposed by time, computational cost, and backend variability.
 
