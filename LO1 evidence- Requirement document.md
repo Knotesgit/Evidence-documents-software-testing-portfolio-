@@ -42,9 +42,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** The service must return either a complete delivery plan or an empty plan with cost=0 and moves=0.  
 **Rationale:** Ensures deterministic behaviour in success/failure cases.
 
-**Test Approach:** Scenario-based system testing; black-box workflow tests; boundary case with no feasible paths.  
-**Appropriateness:** Captures full system behaviour across components.  
-**Weaknesses:** Hard to isolate cause of empty plans; sensitive to backend variability.
+**Test Approach:** Scenario-based system testing using black-box API workflows, including cases with feasible routes and boundary cases where no safe path exists, asserting either a complete plan or a zero-cost, zero-move empty plan.  
+**Appropriateness:** Captures full system behaviour across components where the distinction between valid and empty plans emerges only from end-to-end interaction and cannot be validated at unit or integration level without oversimplifying failure causes.
+**Weaknesses:** Hard to isolate the root cause of empty plans, as failures may originate from pathfinding, drone filtering, or backend data variability.
 
 ---
 
@@ -53,9 +53,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** No coordinate in a returned path may fall inside a restricted polygon.  
 **Rationale:** Safety rule required by ILP specification.
 
-**Test Approach:** Synthetic restricted areas; edge/inside/outside boundary tests.  
-**Appropriateness:** Realistically simulates operational safety conditions.  
-**Weaknesses:** Floating-point issues near polygon edges; exhaustive geometry is hard.
+**Test Approach:** System-level testing with synthetic restricted polygons, checking generated paths against inside, outside, edge-on, and vertex-on cases, including small epsilon offsets near polygon boundaries.
+**Appropriateness:** Realistically simulates operational safety conditions because restricted-area violations arise from accumulated path decisions and floating-point effects that cannot be exhaustively captured by isolated geometric unit tests.
+**Weaknesses:** Floating-point precision near polygon edges may cause borderline cases to behave inconsistently, and exhaustive geometric coverage is infeasible.
 
 ---
 
@@ -64,9 +64,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** Drones must satisfy capacity, cooling/heating, and incompatibility constraints.  
 **Rationale:** Ensures valid drone assignment.
 
-**Test Approach:** Scenario-based multi-constraint filtering; known expected outputs.  
-**Appropriateness:** Matches decision rules precisely.  
-**Weaknesses:** Dependent on backend dataset variety; edge cases may be scarce.
+**Test Approach:** Scenario-based system tests using synthetic drone datasets that isolate single constraints (capacity, cooling, heating) as well as combined constraint cases, comparing results against known expected selections.
+**Appropriateness:** Matches decision rules precisely as drone eligibility depends on the interaction of multiple constraints whose combined effect cannot be reliably validated through independent unit checks.
+**Weaknesses:** Coverage depends on the variety of available backend or synthetic datasets, and rare constraint combinations may be under-represented.
 
 ---
 
@@ -75,9 +75,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** Plans must include outbound paths for deliveries and return paths (`deliveryId = null`).  
 **Rationale:** Required for cost consistency and final drone state.
 
-**Test Approach:** Plan-structure validation; order-checking tests.  
-**Appropriateness:** Tests observable behaviour through API.  
-**Weaknesses:** Faults in return segments may originate from pathfinding, not planning.
+**Test Approach:** Black-box plan-structure validation via the API, asserting the presence and ordering of outbound delivery segments and corresponding return segments.
+**Appropriateness:** Tests observable behaviour through the API because correctness is defined by plan structure rather than internal pathfinding decisions, making black-box validation more appropriate than structural inspection.
+**Weaknesses:** Faults observed in return segments may originate from pathfinding logic rather than planning structure, making diagnosis indirect.
 
 ---
 
@@ -88,9 +88,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** `calcDeliveryPath` must request drones, service points, restricted areas, and availability per invocation.  
 **Rationale:** Ensures fresh ILP data.
 
-**Test Approach:** Mock ILP client; verify call-count expectations.  
-**Appropriateness:** Mocking isolates backend behaviour.  
-**Weaknesses:** Mocking hides real-network defects.
+**Test Approach:** Integration testing with a mocked ILP client, verifying per-request call counts for drones, service points, restricted areas, and availability endpoints.
+**Appropriateness:** Mocking isolates backend behaviour while allowing precise verification of interaction frequency, which would be infeasible and nondeterministic when relying on the real ILP service.
+**Weaknesses:** Mocking removes real network and service-side failure modes, potentially hiding latency or availability issues.
 
 ---
 
@@ -99,9 +99,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** `distanceBetween`, `nextPosition`, and `isInRegion` must be called during full-path search.  
 **Rationale:** Ensures CW1 logic feeds into CW2 planning.
 
-**Test Approach:** Spy wrappers for geometry functions.  
-**Appropriateness:** Verifies internal interaction pathways.  
-**Weaknesses:** Spies may slightly alter behaviour or timing.
+**Test Approach:** Integration testing using spy wrappers around geometry utilities to assert invocation of distanceBetween, nextPosition, and isInRegion during path search.
+**Appropriateness:** Verifies internal interaction pathways since correct invocation of geometry utilities cannot be inferred solely from output behaviour without risking false confidence due to coincidental correctness.
+**Weaknesses:** Spy instrumentation may slightly affect execution timing or behaviour, though this is acceptable for interaction-level validation.
 
 ---
 
@@ -110,9 +110,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** `/query`, `/queryAsPath`, `/queryAvailableDrones` must apply rules consistently.  
 **Rationale:** Ensures coherent filtering logic.
 
-**Test Approach:** Parameterised integration tests across attributes/operators.  
-**Appropriateness:** Matches multi-component filtering.  
-**Weaknesses:** Backend dataset may limit operator coverage.
+**Test Approach:** Parameterized integration tests exercising combinations of query attributes and operators (e.g. <, >, =), including empty-result cases, to ensure consistent filtering across endpoints.
+**Appropriateness:** Matches multi-component filtering by exercising parameter combinations across integrated components that cannot be meaningfully validated by isolated unit tests of individual filters.
+**Weaknesses:** Operator and attribute coverage is limited by the representativeness of available test datasets.
 
 ---
 
@@ -123,9 +123,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** Must compute correct degree-space Euclidean distance.  
 **Rationale:** Core primitive for ordering and estimation.
 
-**Test Approach:** Oracle-based numeric tests; symmetry validation.  
-**Appropriateness:** Deterministic and mathematically verifiable.  
-**Weaknesses:** Floating-point precision introduces small errors.
+**Test Approach:** Oracle-based unit tests using known coordinate pairs, including symmetry and zero-distance checks.
+**Appropriateness:** Deterministic and mathematically verifiable, making unit-level oracle testing sufficient and rendering higher-level integration tests unnecessary for establishing correctness.
+**Weaknesses:** Floating-point arithmetic introduces minor rounding errors that must be tolerated within numeric thresholds.
 
 ---
 
@@ -134,9 +134,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** Given a valid angle (multiple of 22.5°), output is exactly one STEP away.  
 **Rationale:** Ensures grid correctness.
 
-**Test Approach:** Test all 16 valid angles; invalid-angle rejection.  
-**Appropriateness:** Small, self-contained computation.  
-**Weaknesses:** Does not test interaction with pathfinding.
+**Test Approach:** Exhaustive unit testing over all 16 valid angles (multiples of 22.5°) and rejection tests for invalid angles, verifying the STEP distance invariant.
+**Appropriateness:** Small, self-contained computation with a finite input domain, allowing exhaustive angle coverage at unit level without combinatorial explosion.
+**Weaknesses:** These tests do not validate how movement interacts with higher-level pathfinding logic.
 
 ---
 
@@ -145,9 +145,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** Edge and vertex points count as inside.  
 **Rationale:** Ensures consistent polygon semantics.
 
-**Test Approach:** Boundary polygons; vertex-on/edge-on inputs.  
-**Appropriateness:** Ideal for boundary-value testing.  
-**Weaknesses:** Simplified shapes may not match real backend data.
+**Test Approach:** Boundary-value unit tests using simple polygons with points exactly on edges and vertices, as well as minimal inside/outside offsets.
+**Appropriateness:** Ideal for boundary-value testing as isolating polygon semantics at unit level avoids confounding effects from pathfinding and floating-point accumulation present at higher levels.
+**Weaknesses:** Simplified polygon shapes may not fully reflect complex real-world restricted areas.
 
 ---
 
@@ -158,9 +158,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** All endpoints must finish within container time limit.  
 **Rationale:** Prevents automarker timeouts.
 
-**Test Approach:** Stress tests with large restricted areas; timing measurements.  
-**Appropriateness:** Directly targets measurable performance.  
-**Weaknesses:** Non-deterministic timing across environments.
+**Test Approach:** System-level performance testing using stress scenarios with large restricted areas and long routes, measuring execution time across repeated runs and reporting median or percentile timings.
+**Appropriateness:** Directly targets measurable performance since execution time depends on integrated pathfinding behaviour and cannot be meaningfully estimated through mocked or isolated components.
+**Weaknesses:** Execution time is non-deterministic across environments; repeated measurements reduce but do not eliminate variability.
 
 ---
 
@@ -169,8 +169,8 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** A* expansion count must not exceed safe limit.  
 **Rationale:** Prevents runaway CPU use.
 
-**Test Approach:** Construct near-worst-case maps; detect fallback behaviour.  
-**Appropriateness:** Validates operational safety constraints.  
+**Test Approach:** Construction of near worst-case maps to trigger high A* expansion, asserting that expansion count remains below a defined cap or that bounded fallback behaviour is activated.
+**Appropriateness:** Validates operational safety constraints by empirically bounding worst-case behaviour where formal analysis of A expansion would be impractical within project constraints. 
 **Weaknesses:** Hard to replicate exact expansion conditions.
 
 ---
@@ -180,8 +180,8 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** Cost = initial + final + costPerMove × stepsUsed.  
 **Rationale:** Ensures predictable pricing model.
 
-**Test Approach:** Known-path oracles; compare expected cost.  
-**Appropriateness:** Cost functions are deterministic and measurable.  
+**Test Approach:** Oracle-based tests using known paths and step counts, comparing computed costs against expected values from the pricing formula.
+**Appropriateness:** Cost functions are deterministic and measurable, making oracle-based unit and integration tests sufficient without requiring system-level exploration.
 **Weaknesses:** Relies on accurate step counting from pathfinding.
 
 ---
@@ -193,9 +193,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** System must fall back to default backend URL.  
 **Rationale:** Ensures deployability.
 
-**Test Approach:** Unset environment variable in test container.  
-**Appropriateness:** Matches operational environment conditions.  
-**Weaknesses:** Hard to reproduce container behaviour exactly.
+**Test Approach:** Operational testing by unsetting the environment variable in a containerised test setup and verifying fallback to the default backend endpoint.
+**Appropriateness:** Matches operational environment conditions by explicitly testing configuration fallbacks that cannot be validated through static code inspection alone.
+**Weaknesses:** Container configuration behaviour may differ slightly from production deployment environments.
 
 ---
 
@@ -204,9 +204,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** Malformed coordinates/regions must return controlled errors.  
 **Rationale:** Ensures robustness.
 
-**Test Approach:** Fuzz invalid JSON inputs; malformed numeric values.  
-**Appropriateness:** Standard negative testing.  
-**Weaknesses:** JSON parsers may differ in behaviour.
+**Test Approach:** Negative testing with malformed JSON payloads and invalid numeric values, asserting controlled 400-level responses.
+**Appropriateness:** Standard negative testing ensures controlled failure modes, which are critical for robustness but easily overlooked by functional-only testing.
+**Weaknesses:** Framework-level validation may intercept some errors before controller logic, limiting branch-level control.
 
 ---
 
@@ -215,9 +215,9 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 **Description:** Identical inputs produce identical outputs.  
 **Rationale:** Required for repeatable tests.
 
-**Test Approach:** Repeat-call differential comparison.  
-**Appropriateness:** Straightforward and clear.  
-**Weaknesses:** Sensitive to floating-point formatting or map ordering.
+**Test Approach:** Repeat-call testing with identical inputs, comparing responses for structural and numeric equality.
+**Appropriateness:** Straightforward and clear as determinism is a prerequisite for reliable automated testing and regression detection.
+**Weaknesses:** Determinism may be affected by floating-point formatting or collection ordering.
 
 ---
 
@@ -236,11 +236,87 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 
 # 8. Dependency Map
 
-- Pathfinding (FR-S2, FR-S4) depends on FR-U1, FR-U2, FR-U3  
-- Drone assignment (FR-S3) depends on integration-level availability logic  
-- System planning (FR-S1) depends on pathfinding + assignment  
-- MR-1 depends on MR-2  
-- Operational (QR-1) affects backend integration flow  
+### Unit-level primitives
+
+**FR-U1 (distanceBetween)**  
+- Does not depend on other requirements.  
+- Serves as a foundational geometric primitive used by path construction and cost estimation.
+
+**FR-U2 (nextPosition)**  
+- Does not depend on other requirements.  
+- Provides discrete movement steps required by grid-based pathfinding.
+
+**FR-U3 (isInRegion)**  
+- Does not depend on other requirements.  
+- Defines polygon semantics that are later relied upon by restricted-area avoidance.
+
+---
+
+### Integration-level behaviour
+
+**FR-I1 (backend queried once per request)**  
+- Does not depend on other functional requirements.  
+- Acts as a prerequisite for system-level correctness by ensuring fresh and consistent backend data.
+
+**FR-I2 (geometry utilities invoked during pathfinding)**  
+- Depends on FR-U1, FR-U2, and FR-U3.  
+- Ensures that unit-level geometry logic is actually exercised during integrated path search.
+
+**FR-I3 (query endpoints filter drones correctly)**  
+- Depends on FR-I1 for consistent backend data.  
+- Supports system-level drone assignment behaviour across multiple endpoints.
+
+---
+
+### System-level functional behaviour
+
+**FR-S2 (paths avoid restricted areas)**  
+- Depends on FR-U3 for polygon semantics and FR-I2 for correct invocation of geometry during pathfinding.  
+- Represents emergent safety behaviour that cannot be validated in isolation.
+
+**FR-S4 (outbound and return segments included)**  
+- Depends on FR-S2 for valid path construction and FR-I2 for correct path generation logic.  
+- Defines structural correctness of delivery plans rather than internal algorithms.
+
+**FR-S3 (drone selection respects constraints)**  
+- Depends on FR-I1 for fresh availability data and FR-I3 for consistent filtering logic.  
+- Correctness arises from the interaction of multiple integrated constraints.
+
+**FR-S1 (valid or empty plan returned)**  
+- Depends on FR-S2, FR-S3, and FR-S4.  
+- Represents overall system planning behaviour emerging from pathfinding and assignment outcomes.
+
+---
+
+### Measurable requirements
+
+**MR-2 (pathfinding node expansion capped)**  
+- Depends on FR-S2 and FR-U2, as expansion behaviour is driven by movement and restricted-area complexity.  
+- Acts as a control mechanism for worst-case search behaviour.
+
+**MR-1 (requests complete within 30 seconds)**  
+- Depends on MR-2 and is indirectly influenced by FR-S2 and FR-S3.  
+- Performance emerges from combined path complexity and drone filtering effectiveness.
+
+**MR-3 (cost formula consistency)**  
+- Depends on FR-U1 for distance calculation and FR-S4 for correct path structure.  
+- Ensures deterministic pricing once path and step counts are established.
+
+---
+
+### Operational and quality requirements
+
+**QR-1 (default ILP endpoint fallback)**  
+- Does not depend on other requirements.  
+- Affects FR-I1 by ensuring backend integration remains functional under deployment misconfiguration.
+
+**QR-2 (invalid geometry yields 400, not 500)**  
+- Does not define standalone behaviour.  
+- Supports FR-S1 by ensuring failure modes are controlled and distinguishable from valid empty plans.
+
+**QR-3 (deterministic JSON responses)**  
+- Does not define functional behaviour.  
+- Is a cross-cutting prerequisite for reliable testing of system and integration requirements.
 
 ---
 
