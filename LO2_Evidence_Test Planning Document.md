@@ -32,7 +32,7 @@ and what additional mechanisms are required to make such testing feasible*.
 | FR-S3  | System      | Functional  | High     | Determines correctness of drone allocation |
 | FR-I1  | Integration | Functional  | Medium   | Ensures correctness of backend interactions |
 | FR-U2  | Unit        | Functional  | Medium   | Core geometric primitive used throughout pathfinding |
-| MR-1   | Measurable  | Performance | High     | Directly affects feasibility under ILP marking constraints |
+| MR-1   | System      | Performance | High     | Directly affects feasibility under ILP marking constraints |
 
 ---
 
