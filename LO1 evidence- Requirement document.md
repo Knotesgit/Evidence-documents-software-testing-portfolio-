@@ -171,10 +171,10 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 
 ---
 
-# 5. Measurable Requirements
+# System-level measurable requirements
 
 ## MR-1 — Requests complete within 30 seconds  
-**Level:** Measurable  
+**Level:** System
 **Description:** All endpoints must finish within container time limit.  
 **Rationale:** Prevents automarker timeouts.
 
@@ -187,7 +187,7 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 ---
 
 ## MR-2 — Pathfinding node expansion is capped  
-**Level:** Measurable  
+**Level:** System
 **Description:** A* expansion count must not exceed safe limit.  
 **Rationale:** Prevents runaway CPU use.
 
@@ -200,7 +200,7 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 ---
 
 ## MR-3 — Cost formula must be consistent  
-**Level:** Measurable  
+**Level:** System
 **Description:** Cost = initial + final + costPerMove × stepsUsed.  
 **Rationale:** Ensures predictable pricing model.
 
@@ -228,7 +228,7 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 ---
 
 ## QR-2 — Invalid geometry input must produce 400, not 500  
-**Level:** Quality  
+**Level:** System
 **Description:** Malformed coordinates/regions must return controlled errors.  
 **Rationale:** Ensures robustness.
 
@@ -241,7 +241,7 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 ---
 
 ## QR-3 — JSON responses must be deterministic  
-**Level:** Quality  
+**Level:** System 
 **Description:** Identical inputs produce identical outputs.  
 **Rationale:** Required for repeatable tests.
 
@@ -259,10 +259,15 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 |------------|----------|--------|
 | FR-S1, FR-S2 | High | Core correctness and safety |
 | FR-S3 | High | Drone assignment feasibility |
-| FR-U1, FR-U2 | Medium | Isolated yet essential |
+| FR-S4 | Medium | Structural completeness of plans |
+| FR-U1, FR-U2, FR-U3 | Medium | Foundational geometric primitives |
+| FR-I1 | Medium | Backend interaction correctness |
 | FR-I2, FR-I3 | Medium | Integration behaviour |
-| MR-1, MR-2 | High | Performance constraints |
-| QR-1, QR-2 | Medium | Stability and robustness |
+| MR-1, MR-2 | High | Performance and safety constraints |
+| MR-3 | Medium | Pricing correctness |
+| QR-1 | Medium | Deployment robustness |
+| QR-2, QR-3 | Medium | Error handling and determinism |
+
 
 ---
 
@@ -320,7 +325,7 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 
 ---
 
-### Measurable requirements
+### System-level measurable requirements
 
 **MR-2 (pathfinding node expansion capped)**  
 - Depends on FR-S2 and FR-U2, as expansion behaviour is driven by movement and restricted-area complexity.  
