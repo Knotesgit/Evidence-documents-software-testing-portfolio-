@@ -1,74 +1,39 @@
-# LO3 Evidence (Preliminary) — Application of Testing Techniques and Coverage
+# LO3 — Test Execution and Evidence
 
-> *This document presents preliminary evidence for Learning Outcome 3 based on the CW1 test suite of the ILP Drone Delivery microservice. It will be extended in CW2 to include additional endpoints, coverage analysis, and system-level evaluation.*
+This section presents evidence that the planned tests were implemented and executed, and that they provide meaningful pass/fail decisions for the selected requirements. The focus of LO3 is not test design, which is addressed in LO2, but the execution of those tests and the evaluation of their adequacy.
 
----
+Tests were implemented using JUnit 5, with Mockito used where isolation of external dependencies was required. Execution evidence is provided in the accompanying `LO3_screenshots` directory, which contains screenshots of test oracles, executed test results, and supporting coverage or scenario visualisations where appropriate.
 
-## 1. Range of Techniques Used
+The executed tests span multiple test levels, including unit tests for geometric primitives, integration tests for backend interaction constraints, system-level scenario-based tests for end-to-end path planning behaviour, and measurable tests for performance constraints under controlled workloads.
 
-The CW1 test suite applies a range of testing techniques at different levels of abstraction:
 
-| Level | Technique | Evidence | Description |
-|-------|------------|-----------|-------------|
-| **Unit** | White-box testing (structural) | `GeoServiceTests.java` | Exercises all geometric functions — distance, angle-based movement, and polygon inclusion. Includes symmetry, boundary, and determinism checks. |
-| **Integration** | Black-box testing (functional) | `DistanceEndpointsTests.java`, `IsInRegionEndpointTests.java`, `NextPositionEndpointTests.java` | Uses **MockMvc** to validate controller behaviour, JSON (de)serialization, and error handling for valid and invalid input. |
-| **System / API sanity** | TBC in cw2 | TBC in cw2 | TBC in cw2 |
-| **Cross-cutting validation** | Boundary-value and negative testing | Across all endpoint tests | Covers malformed JSON, missing fields, out-of-range coordinates, and closed-polygon enforcement. |
+## 1. Overview of Executed Tests
 
-These techniques demonstrate practical application of both **functional** and **structural** approaches consistent with ISO 29119-2/-3.
+Tests were implemented and executed for the requirements selected in LO2, demonstrating a concrete range of testing techniques applied across multiple test levels. The objective was to ensure that each requirement is associated with an executable test and an explicit, programmatic pass/fail oracle.
 
----
+Assertion-based testing was used at the unit level to verify deterministic geometric computations. These tests rely on direct numeric assertions and boolean predicates, such as equality within tolerance, empty versus non-empty results, and exact step-based movement behaviour.
 
-## 2. Evaluation Criteria and Adequacy Measures
+Mock-based interaction testing was applied at the integration level to validate constraints on backend usage. External dependencies were isolated using Mockito, and interaction properties were verified through explicit call-count and no-extra-interaction assertions.
 
-Testing adequacy was evaluated using three complementary measures:
+At the system level, scenario-based testing was employed to exercise end-to-end path-planning behaviour. Carefully constructed geometric configurations were used to drive acceptance and rejection outcomes, including interior violations, boundary conditions, forced detours, and multi-area navigation. System-level oracles verify both the existence of a valid path and the absence of restricted-area intersections along all path segments.
 
-1. **Coverage metrics** — collected via IntelliJ IDEA’s built-in coverage tool  
-   - Line coverage ≈ **97 %** overall  
-   - Branch coverage ≈ **75 %**
-2. **Boundary adequacy** — each equivalence partition tested at and around its threshold:  
-   - Distance threshold = 0.00015°  
-   - Angle multiples = 22.5°  
-   - Polygon closure and vertex inclusion.
-3. **Yield** — all ≈ 34 tests executed successfully (**0 failures**) across five test classes.
-
-These metrics indicate that the CW1 test suite exercises nearly all executable code and validates both normal and exceptional behaviours.
+For measurable requirements, performance measurement techniques were used. Execution time was collected across repeated runs under controlled workloads, and statistical summaries were evaluated against defined thresholds. Additional assertions were included to exclude trivial early-exit behaviour and ensure that measured runs represent genuine path-planning execution.
 
 ---
 
-## 3. Results of Testing
+## 2. Requirement-level Evidence 
 
-| Test Class | Focus | Tests | Result | Notes |
-|-------------|--------|--------|--------|-------|
-| `GeoServiceTests` | Core geometry (distance, movement, polygon) | 7 |  Pass | Achieved 100 % line, ~76 % branch coverage. |
-| `DistanceEndpointsTests` | `/distanceTo`, `/isCloseTo` endpoints | 9 |  Pass | Valid and invalid JSON requests. |
-| `IsInRegionEndpointTests` | Polygon inclusion logic | 8 |  Pass | Includes border and vertex tests; invalid polygons → 400. |
-| `NextPositionEndpointTests` | Directional step calculation | 8 |  Pass | Tests valid/invalid angles and malformed JSON. |
-| `GetEndpointsTests` | Service health and UID | 2 |  Pass | Confirms actuator and identifier endpoints. |
+### FR-U2 — STEP-based movement correctness
 
-No functional failures were observed; results match the ILP specification for CW1.
+FR-U2 defines a deterministic geometric primitive and was planned in LO2 to be tested at unit level using assertion-based verification. The planned approach focused on verifying exact STEP displacement and directional correctness independently of higher-level path-planning or obstacle-avoidance logic.
 
----
+The implemented tests follow this plan without deviation. Assertion-based unit tests directly verify that the computed next position advances exactly one STEP in the intended direction. Numeric assertions are applied to the resulting coordinates, using tolerance-aware comparisons to account for floating-point representation.
 
-## 4. Evaluation and Reflection
+The pass/fail criterion for FR-U2 is fully programmatic: a test passes if and only if the displacement magnitude equals STEP (within a defined epsilon), irrespective of direction. Because FR-U2’s contract is fully defined by deterministic numeric constraints (fixed step length and direction), a direct numeric assertion is a sufficient evaluation criterion: any defect in STEP magnitude or directional calculation manifests immediately as an assertion failure. The oracle is intentionally independent of other geometric utilities and computes distance directly using elementary arithmetic, avoiding shared logic that could mask faults through common-cause errors.
 
-**Strengths**
-- Very high **line coverage** and solid **branch coverage** on computational logic.  
-- Integration tests systematically verify controller behaviour, including error paths.  
-- Functional correctness of all four major endpoints has been established.
+![FR-U2 oracle: assertion-based verification of exact STEP displacement](LO3_screenshots/FR-U2_code.png)
+*Figure — FR-U2 oracle: STEP represents the fixed movement length specified by FR-U2, while EPS is a deliberately small tolerance introduced solely to account for floating-point representation error. EPS does not relax the behavioural contract of the requirement.*
 
-**Branch coverage rationale**  
-The overall branch coverage (~75 %) is slightly lower because several controller endpoints reuse shared validation methods. These were thoroughly tested once and intentionally not re-tested in every endpoint to avoid redundant cases that would not improve fault detection.
+This testing approach is considered thorough for FR-U2 because the main uncertainty for this requirement is whether the implementation consistently produces the correct STEP-length displacement for the requested direction. Assertion-based unit tests reduce this uncertainty by checking the contract directly at the point it is computed, without interference from path-planning heuristics, restricted-area logic, or backend data. Exercising FR-U2 in isolation therefore builds confidence that any higher-level behaviour that depends on step-based movement is not compensating for, or hiding, a defect in the movement primitive. No additional scenario-based or integration testing is required for this requirement, as such tests would not increase confidence beyond what direct numeric verification already provides.
 
-**Known gaps and limitations**
-- Some defensive controller branches remain untested due to validation reuse.  
-- Non-functional and performance aspects are not yet evaluated.  
-- No mutation or fault-based adequacy analysis at this stage.
-
-**Planned improvements (for CW2)**
-- Extend coverage to new CW2 endpoints and integration flows.  
-- Add targeted negative tests to hit remaining defensive branches without duplication.  
-- Incorporate mutation-testing metrics and summarise combined coverage across CW1 + CW2.  
-- Maintain a concise test log linking discovered issues → fixes → re-runs.
-
-
+###
