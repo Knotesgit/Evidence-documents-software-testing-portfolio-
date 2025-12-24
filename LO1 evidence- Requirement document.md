@@ -366,5 +366,3 @@ This LO1 Evidence document provides:
 - Test approaches, appropriateness, and weaknesses  
 - Priorities and dependencies  
 
-It fully satisfies LO1(a)–LO1(d) and supports LO2–LO5 test planning, execution, evaluation, and review.
-
