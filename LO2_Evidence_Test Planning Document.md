@@ -154,25 +154,55 @@ use of that instrumentation.
 
 ## 7. Evaluation of Instrumentation Adequacy
 
-The proposed instrumentation is **adequate for LO2 purposes**:
+This section records known limitations of observability for each selected
+requirement, together with the additional instrumentation that would be required
+if testing scope were expanded.
 
-- Hidden internal behaviour is made observable (FR-I1, FR-S2).
-- Rule-based decision logic can be controlled and analysed (FR-S3).
-- Deterministic and measurable behaviour is supported (FR-U2, MR-1).
+### FR-U2 — STEP-based movement correctness
 
-### Limitations
+**Limitations**  
+The current instrumentation observes only the resulting coordinates and does not
+expose intermediate floating-point operations within the movement computation.
 
-- Mocked backends do not capture real network latency or concurrency effects (FR-I1).
-- Geometry testing cannot exhaustively cover all floating-point boundary cases (FR-S2).
-- Performance measurements reflect controlled rather than worst-case conditions (MR-1).
+**Possible improvement**  
+Observing intermediate arithmetic operations would require additional internal
+logging or instrumentation of the movement calculation.
 
-### Possible Improvements
+---
 
-- Limited testing against a real backend for FR-I1.
-- Statistical sampling over larger map regions for MR-1.
-- Mutation-based sensitivity checks for FR-S2 and FR-S3.
+### FR-I1 — Backend queried exactly once per request
 
-These improvements are acknowledged but excluded due to time and resource constraints.
+**Limitations**  
+The use of mocked backends prevents observation of network latency and
+backend-side behaviour.
+
+**Possible improvement**  
+Observing deployment-level behaviour would require integration with a live backend
+or network-level monitoring.
+
+---
+
+### FR-S2 — Paths avoid restricted areas
+
+**Limitations**  
+System-level observation does not provide visibility into intermediate search
+states or unexplored geometric configurations during pathfinding.
+
+**Possible improvement**  
+Observing internal search behaviour would require instrumentation of the
+pathfinding algorithm to expose intermediate states or explored nodes.
+
+---
+
+### FR-S3 — Drone selection respects capability constraints
+
+**Limitations**  
+The current tests do not expose intermediate filtering decisions or discarded
+candidates during drone selection.
+
+**Possible improvement**  
+Exposing intermediate filtering steps would require additional instrumentation of
+the drone selection logic.
 
 ---
 
@@ -212,27 +242,43 @@ I adopt the **V-Model lifecycle**, as described in Y&P Chapter 20. The V-Model l
 
 ---
 
-## 12. Evaluation of the Quality of the Test Plan 
-The quality of the test plan was evaluated by considering whether the selected requirements and testing levels provide adequate coverage of the system’s key risks under realistic resource constraints. The plan deliberately focuses on a small but diverse set of requirements spanning unit, integration, system, and measurable levels, rather than attempting exhaustive coverage of all functional behaviour.
+## 12. Evaluation of the Quality of the Test Plan
 
-A potential omission of the plan is that not all system requirements are tested directly, and some behaviours (e.g. secondary path optimality or rare constraint combinations) are not exhaustively explored. However, this risk is mitigated by prioritising requirements whose failure would result in unsafe behaviour (FR-S2), invalid outputs (FR-S3), or infeasible execution (MR-1). 
+The test plan records an explicit evaluation of omissions, limitations, and
+planning trade-offs associated with the selected requirements and testing levels.
+The following points summarise the aspects identified during this evaluation.
 
-In particular, FR-S2 represents the highest residual risk in the plan. Although unit-level geometric predicates can be verified in isolation, they cannot establish whole-path safety. System-level testing was therefore chosen deliberately, despite higher cost, because it is the lowest level at which segment–polygon interactions and search behaviour can be observed together. 
+- **Incomplete functional coverage**
+  - Not all system behaviour is tested directly.
+  - Secondary properties, such as rare constraint combinations or alternative
+    optimisation criteria, are not exhaustively explored.
+  - These omissions are recorded as part of the planning process.
 
-This introduces a trade-off: exhaustive geometric coverage is sacrificed in favour of representative scenario coverage. The plan accepts this limitation explicitly, as exhaustive verification would be computationally infeasible and disproportionate to the risks addressed by LO2. Overall, the test plan is considered adequate for LO2 purposes because it targets the dominant failure modes of the system while explicitly acknowledging and controlling for the limitations imposed by time, computational cost, and backend variability.
+- **System-level dependency risks**
+  - Several system-level requirements depend on interactions between multiple
+    components and algorithms.
+  - In particular, restricted-area avoidance relies on both geometric predicates
+    and path-search behaviour, which cannot be fully validated through isolated
+    unit-level tests.
+  - These requirements are therefore positioned at system level to allow emergent
+    behaviour to be observed.
 
-Overall, the test plan is considered adequate for LO2 purposes because it targets the dominant failure modes of the system while explicitly acknowledging and controlling for the limitations imposed by time, computational cost, and backend variability.
+- **Trade-offs between coverage and feasibility**
+  - Exhaustive geometric coverage is not attempted due to computational and time
+    constraints.
+  - Representative scenario coverage is selected and documented as a deliberate
+    planning decision.
+
+- **Residual limitations**
+  - Performance observations are limited to request-level timing.
+  - Component-level performance contributions are not isolated within the current
+    instrumentation.
 
 ---
 
 ## 13. Summary
 
-This test planning document demonstrates a coherent LO2-level analysis by:
-
-- selecting diverse, multi-level requirements
-- mapping them to appropriate test levels and A&T approaches
-- identifying necessary instrumentation and scaffolding
-- evaluating the adequacy and limitations of those choices
-
-It provides a sound foundation for the execution (LO3), architectural support (LO4),
-and review (LO5) activities that follow.
+This test planning document records the selected requirements, their prioritisation
+and dependencies, the chosen testing levels and analysis approaches, and the
+instrumentation and scaffolding required to support testing. Known limitations,
+omissions, and planning trade-offs are explicitly documented.
