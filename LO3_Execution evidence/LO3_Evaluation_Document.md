@@ -1,4 +1,4 @@
-\# LO3 Evaluation of Testing Results
+# LO3 Evaluation of Testing Results
 
 
 
@@ -16,11 +16,11 @@ rather than to describe test design or implementation.
 
 
 
-\## FR-U2 — STEP-based movement correctness
+## FR-U2 — STEP-based movement correctness
 
 
 
-\### Evaluation criterion (oracle)
+### Evaluation criterion (oracle)
 
 A numeric oracle asserting that the displacement magnitude between the input and
 
@@ -28,7 +28,7 @@ output coordinates equals `STEP` within a defined tolerance.
 
 
 
-\### Application
+### Application
 
 The oracle is applied to unit tests executing the `nextPosition` primitive across a
 
@@ -36,13 +36,13 @@ representative set of movement directions.
 
 
 
-\### Evaluation result
+### Evaluation result
 
 No violations of the numeric constraint were observed in the executed tests.
 
 
 
-\### Limitations
+### Limitations
 
 The evaluation does not explore extreme floating-point edge cases beyond the tested
 
@@ -50,9 +50,9 @@ direction set.
 
 
 
-\### Evidence
+### Evidence
 
-\- `LO3 Evidence/FR-U2/FR-U2\_code.png`
+- `LO3 Evidence/FR-U2/FR-U2\_code.png`
 
 
 
@@ -60,11 +60,11 @@ direction set.
 
 
 
-\## FR-I1 — Backend queried exactly once per request
+## FR-I1 — Backend queried exactly once per request
 
 
 
-\### Evaluation criterion (oracle)
+### Evaluation criterion (oracle)
 
 An interaction oracle verifying that each backend query method is invoked exactly
 
@@ -72,7 +72,7 @@ once per request, and that no additional backend interactions occur.
 
 
 
-\### Application
+### Application
 
 The oracle is applied in integration tests using a mocked backend client to observe
 
@@ -80,13 +80,13 @@ call behaviour during request handling.
 
 
 
-\### Evaluation result
+### Evaluation result
 
 All executed tests satisfied the exact-once interaction constraint.
 
 
 
-\### Limitations
+### Limitations
 
 The evaluation does not assess the semantic correctness of backend responses, which
 
@@ -94,9 +94,9 @@ is outside the scope of the requirement.
 
 
 
-\### Evidence
+### Evidence
 
-\- `LO3 Evidence/FR-I1/FR-I1\_code.png`
+- `LO3 Evidence/FR-I1/FR-I1\_code.png`
 
 
 
@@ -104,17 +104,17 @@ is outside the scope of the requirement.
 
 
 
-\## FR-S2 — Path must not enter restricted areas
+## FR-S2 — Path must not enter restricted areas
 
 
 
-\### Evaluation criterion (oracle)
+### Evaluation criterion (oracle)
 
 A geometric safety oracle asserting that:
 
-\- no path endpoint lies inside or on the boundary of any restricted area, and
+- no path endpoint lies inside or on the boundary of any restricted area, and
 
-\- no path segment intersects or touches any restricted-area boundary.
+- no path segment intersects or touches any restricted-area boundary.
 
 
 
@@ -128,13 +128,13 @@ The oracle is applied to every returned path segment in system-level scenario te
 
 
 
-\### Evaluation result
+### Evaluation result
 
 No restricted-area violations were detected in any executed scenario.
 
 
 
-\### Limitations
+### Limitations
 
 Scenario-based system testing cannot exhaustively cover all possible geometric
 
@@ -142,11 +142,11 @@ configurations.
 
 
 
-\### Evidence
+### Evidence
 
-\- `LO3 Evidence/FR-S2/FR-S2\_oracle.png`
+- `LO3 Evidence/FR-S2/FR-S2\_oracle.png`
 
-\- `LO3 Evidence/FR-S2/Behaviour table.md`
+- `LO3 Evidence/FR-S2/Behaviour table.md`
 
 
 
@@ -154,11 +154,11 @@ configurations.
 
 
 
-\## FR-S3 — Constraint-based drone selection
+## FR-S3 — Constraint-based drone selection
 
 
 
-\### Evaluation criterion (oracle)
+### Evaluation criterion (oracle)
 
 A constraint-satisfaction oracle asserting that the selected drone satisfies all
 
@@ -168,7 +168,7 @@ candidate is accepted.
 
 
 
-\### Application
+### Application
 
 The oracle is applied to system tests constructed with controlled backend datasets
 
@@ -176,13 +176,13 @@ to isolate individual and combined constraint interactions.
 
 
 
-\### Evaluation result
+### Evaluation result
 
 In all executed tests, the selected drone satisfied the required constraints.
 
 
 
-\### Limitations
+### Limitations
 
 The evaluation does not assess optimisation or preference policies not specified by
 
@@ -190,13 +190,13 @@ the requirement.
 
 
 
-\### Evidence
+### Evidence
 
-\- `LO3 Evidence/FR-S3/FR-S3-4\_code.png`
+- `LO3 Evidence/FR-S3/FR-S3-4\_code.png`
 
-\- `LO3 Evidence/FR-S3/FR-S3-5\_code.png`
+- `LO3 Evidence/FR-S3/FR-S3-5\_code.png`
 
-\- `LO3 Evidence/FR-S3/FR-S3-6\_code.png`
+- `LO3 Evidence/FR-S3/FR-S3-6\_code.png`
 
 
 
@@ -204,11 +204,11 @@ the requirement.
 
 
 
-\## MR-1 — End-to-end performance constraint
+## MR-1 — End-to-end performance constraint
 
 
 
-\### Evaluation criterion (oracle)
+### Evaluation criterion (oracle)
 
 A statistical performance oracle asserting that summary execution-time statistics
 
@@ -216,7 +216,7 @@ A statistical performance oracle asserting that summary execution-time statistic
 
 
 
-\### Application
+### Application
 
 The oracle is applied to repeated executions under representative and controlled
 
@@ -224,13 +224,13 @@ stress workloads.
 
 
 
-\### Evaluation result
+### Evaluation result
 
 Observed summary statistics satisfied the performance threshold.
 
 
 
-\### Limitations
+### Limitations
 
 Results are environment-dependent and may not generalise to all deployment
 
@@ -238,9 +238,8 @@ conditions.
 
 
 
-\### Evidence
-
-\- `LO3 Evidence/MR-1/MR-1\_code.png`
+### Evidence
+- `LO3 Evidence/MR-1/MR-1\_code.png`
 
 
 
