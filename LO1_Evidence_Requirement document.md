@@ -171,7 +171,7 @@ This LO1 evidence covers **requirements only**, not implementation or results.
 
 ---
 
-# System-level measurable requirements
+# 5. System-level measurable requirements
 
 ## MR-1 — Requests complete within 30 seconds  
 **Level:** System
