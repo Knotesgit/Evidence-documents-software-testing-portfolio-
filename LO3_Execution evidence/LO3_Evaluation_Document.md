@@ -1,251 +1,148 @@
-# LO3 Evaluation of Testing Results
+# LO3 Evidence — Evaluation of Testing
 
+## Scope and Purpose
 
+This document evaluates the adequacy and outcomes of the testing activities carried out
+for the ILP Drone Delivery Microservice.
 
-This document records the application of the evaluation criteria (oracles) defined
+The purpose is **not** to claim full system correctness, but to assess how effectively
+the executed tests provide confidence that selected requirement properties hold within
+the defined testing scope.
 
-for LO3 and summarises the results of those evaluations. The purpose is to document
+The evaluation covers the following requirements:
 
-what conclusions can be drawn from the executed tests, and what limitations remain,
+- **FR-U2 — STEP-based movement correctness**
+- **FR-I1 — Backend queried exactly once per planning request**
+- **FR-S2 — Restricted-area avoidance**
+- **FR-S3 — Drone selection constraints**
+- **MR-1 — Performance constraint**
 
-rather than to describe test design or implementation.
-
-
-
----
-
-
-
-## FR-U2 — STEP-based movement correctness
-
-
-
-### Evaluation criterion (oracle)
-
-A numeric oracle asserting that the displacement magnitude between the input and
-
-output coordinates equals `STEP` within a defined tolerance.
-
-
-
-### Application
-
-The oracle is applied to unit tests executing the `nextPosition` primitive across a
-
-representative set of movement directions.
-
-
-
-### Evaluation result
-
-No violations of the numeric constraint were observed in the executed tests.
-
-
-
-### Limitations
-
-The evaluation does not explore extreme floating-point edge cases beyond the tested
-
-direction set.
-
-
-
-### Evidence
-
-- `LO3 Evidence/FR-U2/FR-U2\_code.png`
-
-
+All supporting evidence is provided in the `LO3_Execution evidence` directory as code
+excerpts, behaviour tables, and test execution results.
 
 ---
 
+## FR-U2 — STEP-based Movement Correctness
 
+All unit-level tests evaluating STEP-based movement passed under tolerance-aware numeric
+assertions.
 
-## FR-I1 — Backend queried exactly once per request
+The evaluation criterion checks that the displacement magnitude of a computed movement
+equals the STEP constant, independent of direction. This directly reflects the semantic
+content of the requirement, which specifies a deterministic numeric property.
 
+**Supporting evidence:**
 
+![Assertion-based verification of STEP displacement](FR-U2/FR-U2_code.png)
 
-### Evaluation criterion (oracle)
+![Successful execution of unit tests](FR-U2/FR-U2_test_result.png)
 
-An interaction oracle verifying that each backend query method is invoked exactly
+![Method-level coverage of STEP movement primitive](FR-U2/FR-U2_JaCoCo_MethodCoverage_nextPosition.png)
 
-once per request, and that no additional backend interactions occur.
+The coverage evidence shows complete execution of the STEP movement primitive.
+Coverage of unrelated geometric utilities is intentionally limited and consistent with
+the restricted evaluation scope of FR-U2.
 
-
-
-### Application
-
-The oracle is applied in integration tests using a mocked backend client to observe
-
-call behaviour during request handling.
-
-
-
-### Evaluation result
-
-All executed tests satisfied the exact-once interaction constraint.
-
-
-
-### Limitations
-
-The evaluation does not assess the semantic correctness of backend responses, which
-
-is outside the scope of the requirement.
-
-
-
-### Evidence
-
-- `LO3 Evidence/FR-I1/FR-I1\_code.png`
-
-
+Residual risk is limited to extreme floating-point edge cases at unusual angles, which
+are acceptable given the representative input coverage.
 
 ---
 
+## FR-I1 — Backend Queried Exactly Once per Planning Request
 
+All integration-level tests passed with backend interaction counts matching the
+requirement.
 
-## FR-S2 — Path must not enter restricted areas
+The evaluation criterion directly observes the number of backend queries issued during a
+planning request. A test passes if and only if the backend is queried exactly once per
+request.
 
+**Supporting evidence:**
 
+![Instrumented verification of backend query count](FR-I1/FR-I1_code.png)
 
-### Evaluation criterion (oracle)
+![Successful execution of backend interaction tests](FR-I1/FR-I1_test_result.png)
 
-A geometric safety oracle asserting that:
-
-- no path endpoint lies inside or on the boundary of any restricted area, and
-
-- no path segment intersects or touches any restricted-area boundary.
-
-
-
-Boundary contact is treated as a violation.
-
-
-
-\### Application
-
-The oracle is applied to every returned path segment in system-level scenario tests.
-
-
-
-### Evaluation result
-
-No restricted-area violations were detected in any executed scenario.
-
-
-
-### Limitations
-
-Scenario-based system testing cannot exhaustively cover all possible geometric
-
-configurations.
-
-
-
-### Evidence
-
-- `LO3 Evidence/FR-S2/FR-S2\_oracle.png`
-
-- `LO3 Evidence/FR-S2/Behaviour table.md`
-
-
+Returned data correctness and backend response semantics are intentionally excluded, as
+FR-I1 defines an interaction property rather than a computational result.
 
 ---
 
+## FR-S2 — Restricted-area Avoidance
 
+All system-level scenario tests passed under a geometric safety oracle that evaluates
+continuous movement segments against restricted polygons.
 
-## FR-S3 — Constraint-based drone selection
+The evaluation explicitly checks **segment–polygon intersection**, rather than only
+verifying discrete waypoints. This matches the operational interpretation of path
+execution and avoids false confidence from endpoint-only checks.
 
+The evaluated scenarios include:
+- Feasible routing entirely outside restricted areas
+- Rejection of paths intersecting restricted-area interiors
+- Boundary-contact cases treated as blocked
+- Near-boundary paths strictly outside restricted areas accepted
 
+**Supporting evidence:**
 
-### Evaluation criterion (oracle)
+![System-level path validation logic for restricted-area avoidance](FR-S2/FR-S2_code.png)
 
-A constraint-satisfaction oracle asserting that the selected drone satisfies all
+![Geometric oracle enforcing segment–polygon safety](FR-S2/FR-S2_oracle.png)
 
-stated capability constraints. Where multiple drones are eligible, any valid
+![Scenario-based system test execution results](FR-S2/FR-S2_test_result.png)
 
-candidate is accepted.
+No generated path violated the geometric safety oracle.
 
-
-
-### Application
-
-The oracle is applied to system tests constructed with controlled backend datasets
-
-to isolate individual and combined constraint interactions.
-
-
-
-### Evaluation result
-
-In all executed tests, the selected drone satisfied the required constraints.
-
-
-
-### Limitations
-
-The evaluation does not assess optimisation or preference policies not specified by
-
-the requirement.
-
-
-
-### Evidence
-
-- `LO3 Evidence/FR-S3/FR-S3-4\_code.png`
-
-- `LO3 Evidence/FR-S3/FR-S3-5\_code.png`
-
-- `LO3 Evidence/FR-S3/FR-S3-6\_code.png`
-
-
+Residual risk remains for highly irregular or adversarial polygon geometries and extreme
+floating-point boundary cases, which are not exhaustively explored.
 
 ---
 
+## FR-S3 — Drone Selection Constraints
 
+All system-level tests evaluating drone selection passed under the defined constraint
+scenarios.
 
-## MR-1 — End-to-end performance constraint
+The evaluation checks that selected drones satisfy capacity and capability constraints.
+In scenarios where multiple drones are eligible, the oracle accepts **any eligible drone**
+rather than enforcing an undocumented tie-breaking rule.
 
+**Supporting evidence:**
 
+![Drone selection logic under different constraint scenarios](FR-S3/FR-S3-4_code.png)
 
-### Evaluation criterion (oracle)
+![Additional constraint combination scenarios](FR-S3/FR-S3-5_code.png)
 
-A statistical performance oracle asserting that summary execution-time statistics
+![Multi-eligible drone scenario](FR-S3/FR-S3-6_code.png)
 
-(median and 95th percentile) remain below the specified threshold.
+![Execution results for drone selection scenarios](FR-S3/FR-S3_test_result.png)
 
-
-
-### Application
-
-The oracle is applied to repeated executions under representative and controlled
-
-stress workloads.
-
-
-
-### Evaluation result
-
-Observed summary statistics satisfied the performance threshold.
-
-
-
-### Limitations
-
-Results are environment-dependent and may not generalise to all deployment
-
-conditions.
-
-
-
-### Evidence
-- `LO3 Evidence/MR-1/MR-1\_code.png`
-
-
+This evaluation aligns with the semantic intent of the requirement rather than imposing
+implementation-specific ordering assumptions.
 
 ---
 
+## MR-1 — Performance Constraint
 
+All performance tests completed within the specified time threshold.
+
+Repeated executions under controlled inputs produced stable execution times. Additional
+sanity checks confirm that all measured runs involved non-trivial planning behaviour,
+excluding empty-plan or early-exit cases that could distort performance results.
+
+**Supporting evidence:**
+
+![Instrumentation for measuring execution time in performance tests](MR-1/MR-1_code.png)
+
+![Performance test execution](MR-1/MR-1_test_result.png)
+
+![Reproducibility evidence across repeated runs](MR-1/MR-1_reproducible_evidence.png)
+
+![Sanity check showing non-zero planning effort](MR-1/MR-1_totalmove_evidence.png)
+
+The evaluation provides confidence in typical-case performance behaviour while
+acknowledging that exhaustive performance guarantees under all workloads are infeasible
+within the coursework scope.
 
 
 
