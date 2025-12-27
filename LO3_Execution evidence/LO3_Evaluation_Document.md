@@ -62,19 +62,34 @@ Residual risk is limited to deployment-specific behaviour not represented by the
 
 ## FR-S2 — Restricted-area Avoidance
 
-All system-level scenario tests passed under a geometric safety oracle that evaluates continuous movement segments against restricted polygons.
+All system-level scenario tests passed under a geometric safety oracle that evaluates
+continuous movement segments against restricted polygons.
 
-The evaluation treats each returned path as a sequence of continuous motion segments between consecutive waypoints and checks each segment for segment–polygon intersection, rather than only verifying discrete waypoints. This is necessary because operational safety is defined over the executed trajectory: endpoint-only checks can miss violations where both endpoints are outside a restricted area but the straight-line segment crosses the interior. The oracle also enforces the stated safety interpretation that boundary contact (edge/vertex) is treated as blocked, ensuring that “just touching” is not misclassified as safe.
+The evaluation treats each returned path as a sequence of continuous motion segments
+between consecutive waypoints and checks each segment for segment–polygon intersection,
+rather than only verifying discrete waypoints. This is necessary because operational
+safety is defined over the executed trajectory: endpoint-only checks can miss violations
+where both endpoints are outside a restricted area but the straight-line segment crosses
+the interior. The oracle also enforces the stated safety interpretation that boundary
+contact (edge/vertex) is treated as blocked, ensuring that “just touching” is not
+misclassified as safe.
 
-Scenario evaluation is organised by behaviour classes to ensure that both feasible and infeasible routing outcomes are exercised, and that the oracle is evaluated under qualitatively different geometric situations. 
-These classes cover: 
+Scenario evaluation is organised by behaviour classes to ensure that both feasible and
+rejected routing outcomes are exercised, and that the oracle is evaluated under
+qualitatively different geometric situations.
+These classes cover:
 - Baseline feasibility where a safe path exists
 - Invalid requests where safety is violated at the start or goal
-- Detour cases where the planner must route around obstacles rather than follow a direct line
-- Genuinely infeasible cases where no safe route exists (or the bounded search is exhausted)
-- Boundary-contact cases where numerical and geometric corner conditions are most likely to produce false confidence.
+- Detour cases where the planner must route around obstacles rather than follow a direct
+  line
+- Near-boundary routing where paths pass close to restricted-area boundaries without
+  intersecting them
+- Boundary-contact cases where numerical and geometric corner conditions are most likely
+  to produce false confidence
 
-The behaviour partition therefore targets the main ways FR-S2 can fail: unsafe acceptance, unsafe waypoint-only acceptance, and incorrect rejection/acceptance at safety boundaries.
+The behaviour partition therefore targets the main ways FR-S2 can fail: unsafe acceptance,
+unsafe waypoint-only acceptance, and incorrect rejection or acceptance at safety
+boundaries.
 
 **Supporting evidence:**
 
@@ -86,17 +101,26 @@ The behaviour partition therefore targets the main ways FR-S2 can fail: unsafe a
 
 **System-level behaviours considered for FR-S2 (restricted-area avoidance)**
 
-| Behaviour class               | Scenario characteristics                                                                 | Expected system behaviour                                                                 |
-|------------------------------|-------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-| Baseline feasible routing    | Start and goal are outside all restricted areas, and at least one safe path exists        | A non-empty path is generated that satisfies all restricted-area safety constraints       |
-| Start or goal invalid        | Start or goal lies inside, or touches, a restricted area                                  | No path is generated; the request is rejected or results in an empty plan                 |
-| Obstacle-induced detour      | The direct path intersects a restricted area, but a safe detour exists                    | A path is generated that avoids all restricted areas while remaining connected            |
-| No feasible safe route       | Start and goal are valid, but all possible paths intersect restricted areas or search is exhausted | No path is generated and the request results in an empty plan                    |
-| Boundary contact as violation| A path segment touches the boundary of a restricted area without strictly entering it     | The path is treated as unsafe and rejected according to the safety criterion              |
+| Behaviour class                | Scenario characteristics                                                            | Expected system behaviour                                                                 |
+|-------------------------------|--------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| Baseline feasible routing     | Start and goal are outside all restricted areas, and at least one safe path exists   | A non-empty path is generated that satisfies all restricted-area safety constraints       |
+| Start or goal invalid         | Start or goal lies inside, or touches, a restricted area                             | No path is generated; the request is rejected or results in an empty plan                 |
+| Obstacle-induced detour       | The direct path intersects a restricted area, but a safe detour exists               | A path is generated that avoids all restricted areas while remaining connected            |
+| Near-boundary routing         | Paths lie close to restricted-area boundaries without intersecting them              | A path is generated and accepted only if all segments remain strictly outside restrictions|
+| Boundary contact as violation | A path segment touches the boundary of a restricted area without strictly entering it| The path is treated as unsafe and rejected according to the safety criterion              |
 
-No generated path violated the geometric safety oracle: all produced paths satisfied segment-level safety for every consecutive waypoint pair under the boundary-blocking interpretation.
+No generated path violated the geometric safety oracle: all produced paths satisfied
+segment-level safety for every consecutive waypoint pair under the boundary-blocking
+interpretation.
 
-Residual risk remains for geometric and numeric regimes not exhaustively explored within the scenario set, including highly irregular or adversarial polygon geometries (e.g., very thin features, near-self-touching boundaries) and extreme floating-point boundary conditions that could change classification at the edge/vertex tolerance threshold. This is acceptable within scope because the evaluation targets representative restricted-area geometries and operationally meaningful boundary cases, while acknowledging that exhaustive geometric safety over all possible polygons and all floating-point perturbations is infeasible under coursework constraints.
+Residual risk remains for geometric and numeric regimes not exhaustively explored within
+the scenario set, including highly irregular or adversarial polygon geometries (e.g. very
+thin features, near-self-touching boundaries) and extreme floating-point boundary
+conditions that could change classification at the edge or vertex tolerance threshold.
+This is acceptable within scope because the evaluation targets representative restricted-
+area geometries and operationally meaningful boundary cases, while acknowledging that
+exhaustive geometric safety over all possible polygons and all floating-point perturbations
+is infeasible under coursework constraints.
 
 ---
 
