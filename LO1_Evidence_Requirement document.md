@@ -13,11 +13,12 @@ Its purpose is to present a **diverse, multi-level, testable set of requirements
 
 Each requirement includes:
 
-- Level (unit / integration / system / operational)  
-- Test approach  
-- Appropriateness  
-- Weaknesses  
-- Rationale  
+- **Level** (unit / integration / system / operational)
+- **Description** of the required behaviour
+- **Rationale** explaining why the requirement is necessary
+- **Test approach** outlining how the requirement would be exercised
+- **Appropriateness** justifying why the chosen test approach is suitable
+- **Weaknesses** identifying limitations or risks in testing the requirement
 
 ---
 
