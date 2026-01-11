@@ -35,27 +35,66 @@ process.
 ### Findings
 
 **Finding 1 — Oracle dependence**
-System-level test outcomes depend on checking logic that is shared between the system
-under test and the test oracle. This introduces a risk that defects in the shared logic
-will be consistently masked, leading to false confidence even when all system-level
-tests pass. This limitation reflects a test architecture issue rather than a lack of
-test cases.
+Inspection of the implementation and corresponding system-level tests shows that
+certain correctness properties are evaluated using oracle logic that is not fully
+independent from the system logic under test. In particular, geometric and
+constraint-related computations used to determine path validity are structurally
+shared between the implementation and the test oracle.
+
+![System-side restricted-area check logic](Finding1_1.png)
+![Test oracle restricted-area verification logic](Finding1_2.png)
+
+This introduces a risk that defects in the shared computation logic may be
+consistently masked: if the underlying logic is incorrect, both the system and the
+oracle may reproduce the same erroneous behaviour, causing system-level tests to
+pass despite the presence of faults. This limitation reflects a test architecture
+risk rather than insufficient test coverage.
 
 ---
 
 **Finding 2 — Limited observability of internal decision state**
-System-level tests primarily observe final outcomes and do not expose intermediate
-decision states. As a result, certain failure modes may remain undetected if they still
-produce acceptable end results. These masked failures are difficult to reveal through
-black-box or scenario-based testing alone.
+Review of the production code shows that multiple distinct delivery-plan failure
+causes are collapsed into a single externally observable outcome. At the service
+entry point, any validation failure of the dispatch list results in an immediate
+return of an empty delivery response, regardless of the underlying reason for the
+failure.
+
+![System-side restricted-area check logic](Finding2_1.png)
+![Test oracle restricted-area verification logic](Finding2_2.png)
+
+Within the corresponding validation logic, a range of semantically different
+failure conditions are evaluated (e.g. null records, missing identifiers,
+inconsistent requirement combinations), but all are mapped to the same boolean
+outcome. As a result, downstream logic and automated tests can observe only whether
+planning succeeded or failed, not why it failed.
+
+This collapse of failure causes limits the observability of internal decision
+state at the service boundary. System-level tests are therefore unable to
+distinguish between fundamentally different validation failures that lead to the
+same empty response, reducing diagnostic precision and confidence in test outcomes
+for delivery-planning behaviour.
 
 ---
 
 **Finding 3 — Implicit preconditions not independently validated**
-Several correctness properties rely on assumed preconditions, such as well-formed inputs
-or consistent internal representations. These assumptions are not explicitly validated
-by tests, making resulting failures harder to diagnose and potentially misleading when
-they occur.
+Inspection of the pathfinding entry logic shows reliance on implicit preconditions
+about the validity and interpretability of input coordinates and constraint data.
+In particular, the implementation assumes that start and goal coordinates and
+restricted-area polygons are well-formed and numerically stable, and it performs
+restricted-area membership checks immediately on entry.
+![Pathfinding entry logic with early restricted-area exit and implicit input assumptions](Finding3.png)
+When these checks are triggered, the implementation returns an empty path
+immediately. This collapses distinct underlying causes into the same observable
+outcome (empty path), including cases where the start or goal genuinely violates a
+restriction and cases where data quality or numeric edge conditions cause
+membership checks to behave unexpectedly. The entry logic also proceeds to compute
+global search bounds directly from the input coordinates, reinforcing the reliance
+on upstream correctness rather than defensive validation at this level.
+
+As a result, system-level tests can observe only that an empty path was produced,
+but cannot reliably distinguish between legitimate constraint-triggered failure
+and failures caused by violated implicit assumptions, reducing diagnostic precision
+and the confidence that test success implies correctness under broader conditions.
 
 ---
 
@@ -141,4 +180,5 @@ outcome, providing immediate feedback on regressions introduced by code changes.
 The recorded CI execution confirms that testing is consistently and repeatably applied
 to all changes, supporting disciplined regression checking rather than ad hoc or
 developer-dependent test execution.
+
 
