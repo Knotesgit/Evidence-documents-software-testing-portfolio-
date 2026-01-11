@@ -8,17 +8,27 @@ process to address limitations identified in earlier testing.
 ## 1. Review / inspection evidence
 
 ### Purpose
-The purpose of this review is to identify limitations of the implemented testing process
-that are not exposed by executed test results, and to assess risks arising from test
-architecture, observability, and implicit assumptions.
+The purpose of this review is to examine selected parts of the production software
+implementation in order to identify structural limitations that are not reliably
+exposed by executed tests. The review focuses on risks arising from oracle design,
+observability boundaries, and reliance on implicit assumptions, which may reduce
+the confidence that can be placed in testing outcomes even when automated tests
+pass.
 
 ---
 
 ### Review approach
-A lightweight inspection of the testing process was performed, focusing on:
-- trustworthiness of system-level test oracles,
-- visibility of internal decision behaviour,
+A lightweight inspection of the software code was performed as a complement to the
+automated testing carried out in LO3.  
+The review focused on:
+
+- the independence and trustworthiness of system-level test oracles,
+- the visibility of internal decision behaviour in core algorithms,
 - reliance on assumptions not independently validated by tests.
+
+The inspection targeted implementation areas central to system correctness, where
+failures are difficult to diagnose or may be masked by the structure of the testing
+process.
 
 ---
 
@@ -131,3 +141,4 @@ outcome, providing immediate feedback on regressions introduced by code changes.
 The recorded CI execution confirms that testing is consistently and repeatably applied
 to all changes, supporting disciplined regression checking rather than ad hoc or
 developer-dependent test execution.
+
