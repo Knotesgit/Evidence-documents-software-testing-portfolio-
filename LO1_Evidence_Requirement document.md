@@ -24,15 +24,18 @@ Each requirement includes:
 
 # 1. Scope (High-Level Overview)
 
-The microservice under test is a Java Spring Boot application that provides:
+The microservice under test is a Java Spring Boot application used as the basis
+for this portfolio. The scope of this LO1 evidence focuses on a selected subset
+of its intended behaviour, including:
 
-- Geometry utilities for drone navigation (CW1)  
-- Integration with the ILP backend for drones, service points, restricted areas, and availability (CW2)  
-- Drone capability and attribute queries  
-- Delivery plan computation with safe pathfinding, drone selection, and cost calculation (CW2)  
-- Optional GeoJSON serialization  
+- Geometry-related primitives for drone navigation (CW1)
+- Interaction with the ILP backend for drones, service points, restricted areas,
+  and availability (CW2)
+- Delivery plan computation involving pathfinding, drone selection, and cost calculation
+- Selected operational and quality-related behaviours relevant to testability
 
-This LO1 evidence covers **requirements only**, not implementation or results.
+This LO1 evidence documents **requirements only**. It does not claim completeness
+of system specification, nor does it report implementation details or testing results.
 
 ---
 
