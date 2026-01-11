@@ -1,6 +1,6 @@
 # LO1 Evidence — Requirements Document
 
-This document provides a **testing-oriented** set of requirements for the ILP Drone Delivery Microservice.  
+This document provides a set of requirements for the ILP Drone Delivery Microservice.  
 
 It is **not** a full system specification.  
 Its purpose is to present a **diverse, multi-level, testable set of requirements** including:
